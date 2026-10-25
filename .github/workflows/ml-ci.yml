@@ -51,6 +51,16 @@ jobs:
       - name: Build Docker image
         run: docker build -t student-result-ml:${{ github.sha }} .
 
+      - name: Show Docker container logs
+        if: always()
+        run: docker logs student-result-ml-container || true
+
+      - name: Stop and remove Docker container
+        if: always()
+        run: docker rm -f student-result-ml-container || true
+
+    
+
       - name: Start Docker container
         run: |
           docker run -d \
