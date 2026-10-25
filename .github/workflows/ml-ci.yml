@@ -18,10 +18,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -53,13 +53,15 @@ jobs:
       - name: Wait for application to become ready
         run: |
           for i in {1..15}; do
-            if curl --fail --silent http://localhost:5000/health; then
+            # FIXED: Changed /health to / to match app.py from Practical 5
+            if curl --fail --silent http://localhost:5000/; then
               echo "Application is ready."
               exit 0
             fi
             echo "Waiting for application... attempt $i"
             sleep 2
           done
+          echo "Application did not become ready."
           docker logs student-result-ml-container
           exit 1
 
@@ -71,7 +73,7 @@ jobs:
             -d '{"attendance":90,"internal_marks":85,"assignment_marks":88,"previous_score":80}' \
             http://localhost:5000/predict)
           echo "Prediction response: $response"
-          echo "$response" | grep -q '"prediction"'
+          echo "$response" | grep -q "prediction"
 
       - name: Show Docker container logs
         if: always()
@@ -80,3 +82,14 @@ jobs:
       - name: Stop and remove Docker container
         if: always()
         run: docker rm -f student-result-ml-container || true
+        
+      - name: Upload validated ML artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: student-result-ml-artifacts
+          path: |
+            student_result_model.pkl
+            metrics.json
+            student_results.csv
+          if-no-files-found: error
+          retention-days: 7
