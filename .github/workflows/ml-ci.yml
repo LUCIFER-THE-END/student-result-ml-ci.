@@ -54,7 +54,7 @@ jobs:
         run: |
           for i in {1..15}; do
             # FIXED: Changed /health to / to match app.py from Practical 5
-            if curl --fail --silent http://localhost:5000/health; then
+            if curl --fail --silent http://localhost:5000/; then
               echo "Application is ready."
               exit 0
             fi
